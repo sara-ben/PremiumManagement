@@ -1,0 +1,130 @@
+<div class="grid-wrapper">
+  @if (loading()) {
+    <p class="status-line" role="status">טוען נתונים...</p>
+  } @else if (rows().length === 0) {
+    <p class="status-line">אין נתונים להצגה.</p>
+  } @else {
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr class="header-row">
+            <th scope="col" class="status-col">סטטוס</th>
+            @for (column of columns(); track column.systemFieldName) {
+              <th scope="col">
+                <button
+                  type="button"
+                  class="sort-button"
+                  (click)="onHeaderClick(column)"
+                  [attr.aria-sort]="sortField() === column.systemFieldName ? (sortDir() === 'asc' ? 'ascending' : 'descending') : 'none'"
+                >
+                  {{ column.excelColumnName }}
+                  @if (sortField() === column.systemFieldName) {
+                    <span aria-hidden="true">{{ sortDir() === 'asc' ? '▲' : '▼' }}</span>
+                  }
+                </button>
+              </th>
+            }
+          </tr>
+          <tr class="filter-row">
+            <th scope="col"></th>
+            @for (column of columns(); track column.systemFieldName) {
+              <th scope="col">
+                @switch (column.dataType) {
+                  @case ('String') {
+                    <input
+                      type="text"
+                      class="filter-input"
+                      [attr.aria-label]="'סינון לפי ' + column.excelColumnName"
+                      [value]="draftFor(column.systemFieldName).text"
+                      (change)="setTextFilter(column.systemFieldName, $any($event.target).value)"
+                    />
+                  }
+                  @case ('Number') {
+                    <div class="range-filter">
+                      <input
+                        type="number"
+                        class="filter-input"
+                        placeholder="מ-"
+                        [attr.aria-label]="'ערך מינימלי עבור ' + column.excelColumnName"
+                        [value]="draftFor(column.systemFieldName).min"
+                        (change)="setRangeFilter(column.systemFieldName, 'min', $any($event.target).value)"
+                      />
+                      <input
+                        type="number"
+                        class="filter-input"
+                        placeholder="עד-"
+                        [attr.aria-label]="'ערך מקסימלי עבור ' + column.excelColumnName"
+                        [value]="draftFor(column.systemFieldName).max"
+                        (change)="setRangeFilter(column.systemFieldName, 'max', $any($event.target).value)"
+                      />
+                    </div>
+                  }
+                  @case ('Date') {
+                    <div class="range-filter">
+                      <input
+                        type="date"
+                        class="filter-input"
+                        [attr.aria-label]="'מתאריך עבור ' + column.excelColumnName"
+                        [value]="draftFor(column.systemFieldName).min"
+                        (change)="setRangeFilter(column.systemFieldName, 'min', $any($event.target).value)"
+                      />
+                      <input
+                        type="date"
+                        class="filter-input"
+                        [attr.aria-label]="'עד תאריך עבור ' + column.excelColumnName"
+                        [value]="draftFor(column.systemFieldName).max"
+                        (change)="setRangeFilter(column.systemFieldName, 'max', $any($event.target).value)"
+                      />
+                    </div>
+                  }
+                  @case ('Boolean') {
+                    <select
+                      class="filter-input"
+                      [attr.aria-label]="'סינון לפי ' + column.excelColumnName"
+                      [value]="draftFor(column.systemFieldName).boolValue"
+                      (change)="setBoolFilter(column.systemFieldName, $any($event.target).value)"
+                    >
+                      <option value="">הכל</option>
+                      <option value="true">כן</option>
+                      <option value="false">לא</option>
+                    </select>
+                  }
+                }
+              </th>
+            }
+          </tr>
+        </thead>
+        <tbody>
+          @for (row of rows(); track row.rowId) {
+            <tr [class.invalid-row]="!row.isValid">
+              <td class="status-col">
+                @if (row.isValid) {
+                  <span class="status-icon status-valid" role="img" aria-label="שורה תקינה">✓</span>
+                } @else {
+                  <span
+                    class="status-icon status-invalid"
+                    role="img"
+                    tabindex="0"
+                    [attr.aria-label]="'שורה שגויה: ' + rowErrorMessage(row)"
+                    [attr.title]="rowErrorMessage(row)"
+                  >
+                    ✕
+                  </span>
+                }
+              </td>
+              @for (column of columns(); track column.systemFieldName) {
+                <td>{{ formatCellValue(column, row) }}</td>
+              }
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <div class="pagination">
+      <button type="button" (click)="goToPage(page() - 1)" [disabled]="page() <= 1">הקודם</button>
+      <span>עמוד {{ page() }} מתוך {{ totalPages() }} ({{ totalCount() }} שורות)</span>
+      <button type="button" (click)="goToPage(page() + 1)" [disabled]="page() >= totalPages()">הבא</button>
+    </div>
+  }
+</div>

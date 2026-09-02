@@ -1,0 +1,57 @@
+<main class="page">
+  <h1>קליטת נתונים למדד וצפייה דינמית בנתונים שנקלטו</h1>
+
+  @if (errorMessage()) {
+    <p class="error-banner" role="alert">{{ errorMessage() }}</p>
+  }
+
+  <section class="panel" aria-labelledby="import-form-heading">
+    <h2 id="import-form-heading">קליטת קובץ</h2>
+    <app-import-header-form
+      [metrics]="metrics()"
+      [processing]="processing()"
+      [metricId]="metricId()"
+      (metricIdChange)="onMetricSelected($event)"
+      (process)="onProcessImport($event)"
+    />
+
+    @if (lastImportResult(); as result) {
+      <div class="import-summary" [class.has-errors]="result.batch.invalidRows > 0">
+        <p>
+          <strong>{{ statusLabels[result.batch.status] }}</strong>
+          — סה"כ {{ result.batch.totalRows }} שורות,
+          {{ result.batch.validRows }} תקינות,
+          {{ result.batch.invalidRows }} שגויות
+        </p>
+        @if (result.batch.errorSummary) {
+          <p class="error-summary">{{ result.batch.errorSummary }}</p>
+        }
+      </div>
+    }
+  </section>
+
+  @if (metricId() !== null) {
+    <section class="panel" aria-labelledby="data-view-heading">
+      <div class="panel-header">
+        <h2 id="data-view-heading">נתונים שנקלטו</h2>
+        <app-batch-history-select
+          [batches]="batches()"
+          [selectedBatchId]="selectedBatchId()"
+          (selectedBatchIdChange)="onBatchSelected($event)"
+        />
+      </div>
+
+      <app-dynamic-grid
+        [columns]="columns()"
+        [rows]="rows()"
+        [totalCount]="totalCount()"
+        [page]="page()"
+        [pageSize]="pageSize()"
+        [loading]="loadingRows()"
+        (filtersChanged)="onFiltersChanged($event)"
+        (sortChanged)="onSortChanged($event)"
+        (pageChanged)="onPageChanged($event)"
+      />
+    </section>
+  }
+</main>
