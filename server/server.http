@@ -1,0 +1,69 @@
+@server_HostAddress = http://localhost:5185
+
+### Premium methods
+GET {{server_HostAddress}}/api/premium-methods
+Accept: application/json
+
+###
+POST {{server_HostAddress}}/api/premium-methods
+Content-Type: application/json
+
+{
+  "methodNumber": "PM-001",
+  "description": "Sample premium method",
+  "premiumPercentage": 12.5,
+  "calculationPeriod": 1
+}
+
+### Metrics
+GET {{server_HostAddress}}/api/metrics?premiumMethodId=1
+Accept: application/json
+
+###
+POST {{server_HostAddress}}/api/metrics
+Content-Type: application/json
+
+{
+  "premiumMethodId": 1,
+  "name": "CPI Metric",
+  "description": "Consumer price index",
+  "sourceType": 1,
+  "importFrequency": 1
+}
+
+### File definition + field mapping for metric 1
+POST {{server_HostAddress}}/api/metrics/1/file-definitions
+Content-Type: application/json
+
+{
+  "sheetName": "Sheet1",
+  "headerRowNumber": 1,
+  "setAsActive": true,
+  "fieldMappings": [
+    { "excelColumnName": "Region", "systemFieldName": "region", "dataType": 1, "isRequired": true, "displayOrder": 1 },
+    { "excelColumnName": "Value", "systemFieldName": "value", "dataType": 2, "isRequired": true, "displayOrder": 2 },
+    { "excelColumnName": "Date", "systemFieldName": "date", "dataType": 3, "isRequired": false, "displayOrder": 3 }
+  ]
+}
+
+### Fields & filters available for a metric
+GET {{server_HostAddress}}/api/metrics/1/fields
+Accept: application/json
+
+### Import history
+GET {{server_HostAddress}}/api/import-history?metricId=1
+Accept: application/json
+
+### Dynamic data query for a metric
+POST {{server_HostAddress}}/api/metrics/1/data/query
+Content-Type: application/json
+
+{
+  "filters": [
+    { "field": "value", "operator": "range", "value": "10", "valueTo": "30" }
+  ],
+  "sortField": "value",
+  "sortDirection": "desc",
+  "page": 1,
+  "pageSize": 20
+}
